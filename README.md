@@ -1,8 +1,9 @@
 # tech-lead-kit
 
-**Claude Code-u senior engineer kimi yox, tech lead kimi işlət.**
-Bir chat-də hər şeyi ardıcıl yazdırmaq əvəzinə işi bölürsən, paralel session/subagent-lərə
-paylayırsan, nəticəni review + QA ilə yoxlayırsan, qərarları (commit, push, merge) özün verirsən.
+**Run Claude Code like a tech lead, not a senior engineer.**
+Instead of having one chat write everything in sequence, you split the work, hand it to
+parallel sessions and subagents, check the results with review and QA, and keep the
+decisions (commit, push, merge) for yourself.
 
 ```
 $ claude agents
@@ -12,46 +13,48 @@ $ claude agents
 ● reviewer    3 findings to read           DONE
 ```
 
-## Quraşdırma
+## Install
 
-Claude Code terminal session-ında:
+At the prompt of a Claude Code terminal session:
 
 ```
 /plugin install tech-lead-kit --marketplace arahimli/claude-tech-lead
 ```
 
-`y` — marketplace-i əlavə etmək üçün, sonra scope seç (user = bütün layihələrdə).
+Answer `y` to add the marketplace, then pick a scope (`user` = every project).
 
-Shell-dən:
+From a shell:
 
 ```bash
 claude plugin install tech-lead-kit --marketplace arahimli/claude-tech-lead
 ```
 
-Yeniləmə: `claude plugin update tech-lead-kit`, sonra session-da `/reload-plugins`.
+Update: `claude plugin update tech-lead-kit`, then `/reload-plugins` in the session.
 
-Lokal inkişaf üçün (quraşdırmadan): `claude --plugin-dir /path/to/claude-tech-lead`
+Local development (without installing): `claude --plugin-dir /path/to/claude-tech-lead`
 
-## İçində nə var
+## What's inside
 
-| Növ | Ad | Rolu |
+| Type | Name | Role |
 |---|---|---|
-| Subagent | `flutter-analyst` | Flutter ekranını oxuyur, tam spec çıxarır (read-only) |
-| Subagent | `platform-porter` | Bir platformaya (iOS **və ya** Android) port edir — "developer" |
-| Subagent | `reviewer` | Müstəqil review: correctness, parity, konvensiya (read-only) |
-| Subagent | `qa-verifier` | Build + run + screenshot + müqayisə; geri dönməz addımda `BLOCKED` |
-| Command | `/orchestrate <task>` | Tech-lead rejimi: böl → payla → review → QA → status board |
-| Command | `/migrate-screen <path> [ios\|android\|both]` | analyst → 2 porter paralel → reviewer → QA |
-| Command | `/review-gate [branch\|path\|staged]` | Commit/merge-dən əvvəl review qapısı |
-| Skill | `tech-lead-orchestration` | Session vs subagent vs worktree qərar qaydaları, brief şablonu |
-| Skill | `flutter-to-native-migration` | Flutter → SwiftUI / Compose xəritəsi + parity checklist |
-| Şablon | `templates/settings.json` | İcazələr + hook qoşulması |
-| Şablon | `templates/hooks/guard-protected-branches.sh` | `main`/`master`/`develop`-də commit/push-u bloklayır |
-| Şablon | `templates/hooks/notify-done.sh` | Session bitəndə desktop bildirişi |
-| Şablon | `templates/CLAUDE.md.example` | Layihə qaydaları şablonu |
+| Subagent | `flutter-analyst` | Reads a Flutter screen and writes a complete spec (read-only) |
+| Subagent | `platform-porter` | Ports to one platform (iOS **or** Android) — the "developer" |
+| Subagent | `reviewer` | Independent review: correctness, parity, conventions (read-only) |
+| Subagent | `qa-verifier` | Build, run, screenshot, compare; reports `BLOCKED` before irreversible steps |
+| Command | `/orchestrate <task>` | Tech-lead mode: split → dispatch → review → QA → status board |
+| Command | `/migrate-screen <path> [ios\|android\|both]` | analyst → two porters in parallel → reviewer → QA |
+| Command | `/review-gate [branch\|path\|staged]` | Review gate before commit or merge |
+| Skill | `tech-lead-orchestration` | Rules for session vs subagent vs worktree, brief template |
+| Skill | `flutter-to-native-migration` | Flutter → SwiftUI / Compose mapping and parity checklist |
+| Template | `templates/settings.json` | Permissions and hook wiring |
+| Template | `templates/hooks/guard-protected-branches.sh` | Blocks commit/push on `main`/`master`/`develop` |
+| Template | `templates/hooks/notify-done.sh` | Desktop notification when a session finishes |
+| Template | `templates/CLAUDE.md.example` | Project rules template |
 
-Plugin-dən gələn agent/command/skill-lər quraşdırılan kimi aktivdir.
-Şablonlar avtomatik qoşulmur — layihəyə öz istəyinlə kopyalayırsan:
+Commands are namespaced by the plugin, e.g. `/tech-lead-kit:review-gate`.
+
+Agents, commands and skills are active as soon as the plugin is installed.
+Templates are not wired up automatically — copy them into a project yourself:
 
 ```bash
 mkdir -p .claude/hooks
@@ -60,16 +63,21 @@ cp ~/path/to/claude-tech-lead/templates/settings.json .claude/settings.json
 cp ~/path/to/claude-tech-lead/templates/CLAUDE.md.example CLAUDE.md
 ```
 
-(Mövcud `.claude/settings.json` varsa üzərinə yazma — `hooks` və `permissions` bölmələrini birləşdir.)
+(If the project already has `.claude/settings.json`, don't overwrite it — merge the
+`hooks` and `permissions` sections.)
 
 ## Playbook
 
-İş axınının tam izahı: [docs/PLAYBOOK.md](docs/PLAYBOOK.md)
+The full workflow: [docs/PLAYBOOK.md](docs/PLAYBOOK.md)
 
-Qısaca:
+In short:
 
-1. **Plan burada** — sən və baş session.
-2. **Müstəqil iş → ayrı session + worktree** (məs. iOS və Android paralel).
-3. **Axtarış / analiz / review / QA → subagent** (nəticə sənə qayıdır).
-4. **İki writer eyni fayla toxunmur.**
-5. **Commit, push, merge — həmişə sənin qərarın.**
+1. **Plan here** — you and the main session.
+2. **Independent work → its own session + worktree** (e.g. iOS and Android in parallel).
+3. **Search / analysis / review / QA → subagent** (the result comes back to you).
+4. **Two writers never touch the same file.**
+5. **Commit, push, merge — always your call.**
+
+## License
+
+MIT

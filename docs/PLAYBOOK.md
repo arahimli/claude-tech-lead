@@ -1,73 +1,73 @@
 # Tech-lead playbook
 
-## Əsas fikir
+## The idea
 
-Senior engineer özü yazır. Tech lead **işi bölür, düzgün adama verir, nəticəni yoxlayır,
-qərar verir**. Claude Code-da "adamlar" bunlardır:
+A senior engineer writes the code. A tech lead **splits the work, gives each piece to the
+right person, checks the result and makes the call**. In Claude Code, the "people" are:
 
-| "Komanda üzvü" | Claude Code-da | Nə vaxt |
+| "Team member" | In Claude Code | When |
 |---|---|---|
-| Ayrı developer | **Session** (öz worktree-si ilə) | Öz branch/MR-ı olan müstəqil iş |
-| Kömək edən həmkar | **Subagent** | Nəticəsi sənə indi lazım olan iş: axtarış, analiz, review, QA |
-| Sən | **Baş session** | Plan, brief, review qərarları, təsdiq |
+| Another developer | **Session** (with its own worktree) | Independent work that lands as its own branch/MR |
+| A colleague helping out | **Subagent** | Work whose result you need now: search, analysis, review, QA |
+| You | **Main session** | Plan, briefs, review decisions, approvals |
 
-Bunlar Claude Code-un öz funksiyalarıdır (CLI, desktop app, web) — bu plugin onlara
-hazır **rollar, komandalar və qaydalar** əlavə edir.
+These are built-in Claude Code features (CLI, desktop app, web) — this plugin adds ready
+**roles, commands and rules** on top of them.
 
-## Qərar ağacı
-
-```
-Bu iş öz commit/MR-ı ilə ayrıca bitəcək və başqa hissələrdən asılı deyil?
-├─ Bəli → başqa hissə ilə eyni fayllara toxunur?
-│   ├─ Bəli → ardıcıl et (və ya ayrı worktree-lərdə, sonra merge)
-│   └─ Xeyr → AYRI SESSION + WORKTREE
-└─ Xeyr → nəticəsi mənə indi lazımdır (axtarış/analiz/review/QA)?
-    ├─ Bəli → SUBAGENT
-    └─ Xeyr / bir neçə tool call-luq iş → BURADA ET
-```
-
-## Tipik ssenari: bir ekranı iOS + Android-ə köçürmək
+## Decision tree
 
 ```
-/migrate-screen lib/features/order/order_confirmation_page.dart both
+Will this land as its own commit/MR and not depend on the other pieces?
+├─ Yes → does it touch the same files as another piece?
+│   ├─ Yes → do them in sequence (or in separate worktrees, then merge)
+│   └─ No  → OWN SESSION + WORKTREE
+└─ No → do I need the result right now (search / analysis / review / QA)?
+    ├─ Yes → SUBAGENT
+    └─ No / a few tool calls of work → DO IT HERE
 ```
 
-1. `flutter-analyst` → `docs/migration-specs/order-confirmation.md` (hər iki porter eyni sənəddən oxuyur)
-2. Açıq suallar varsa — sən cavab verirsən
-3. iOS porter ‖ Android porter — paralel, ayrı repo/worktree
-4. `reviewer` × 2 (platforma üzrə) + 1 (parity)
-5. `qa-verifier` × 2 — screenshot müqayisəsi
-6. Fix loop — tapıntı faylın sahibi olan porter-ə qayıdır (yeni session yox)
-7. Status board → sən commit/MR qərarı verirsən
+## Typical scenario: porting one screen to iOS + Android
 
-## Yaxşı brief necə olur
+```
+/tech-lead-kit:migrate-screen lib/features/order/order_confirmation_page.dart both
+```
 
-Pis:
-> Android tərəfini də et, yuxarıda tapdıqlarımıza əsasən.
+1. `flutter-analyst` → `docs/migration-specs/order-confirmation.md` (both porters read the same document)
+2. If there are open questions — you answer them
+3. iOS porter ‖ Android porter — in parallel, separate repos/worktrees
+4. `reviewer` × 2 (per platform) + 1 (parity)
+5. `qa-verifier` × 2 — screenshot comparison
+6. Fix loop — a finding goes back to the porter that owns the file (not a new session)
+7. Status board → you decide on commit/MR
 
-Yaxşı:
-> **Məqsəd:** `docs/migration-specs/order-confirmation.md` spec-ini Android Compose-da 1:1 implement et.
-> **Harada:** `android/feature/order/` — mövcud `OrderListScreen.kt`-ı nümunə götür.
-> **Qaydalar:** əvvəl `CLAUDE.md`-ni oxu; design system komponentlərindən istifadə et; string-lər localization-dan.
-> **Toxunma:** `core/network`, iOS qovluğu. Commit etmə.
-> **Bitdi sayılır:** `./gradlew assembleDebug` keçir; spec-dəki 4 state implement olunub; hesabatda dəyişən fayllar + implement olunmayan bəndlər.
+## What a good brief looks like
+
+Bad:
+> Do the Android side too, based on what we found above.
+
+Good:
+> **Goal:** implement the `docs/migration-specs/order-confirmation.md` spec 1:1 in Android Compose.
+> **Where:** `android/feature/order/` — use the existing `OrderListScreen.kt` as the pattern.
+> **Rules:** read `CLAUDE.md` first; use design-system components; strings via localization.
+> **Don't touch:** `core/network`, the iOS folder. Don't commit.
+> **Done when:** `./gradlew assembleDebug` passes; all 4 states from the spec are implemented; report lists changed files and any spec items not implemented.
 
 ## Status board
 
-Hər addımdan sonra Claude belə hesabat verir:
+After each step Claude reports like this:
 
 ```
 developer   iOS order confirmation      DONE      feature/ios-order-confirm
 migration   Android order confirmation  RUNNING   worktree · 14 files
-qa          iOS                         BLOCKED   real cihazda test — təsdiqini gözləyir
+qa          iOS                         BLOCKED   real-device test — waiting on your approval
 reviewer    iOS                         DONE      3 findings to read
 ```
 
-## Qızıl qaydalar
+## Golden rules
 
-1. **Analiz əvvəl, kod sonra.** Spec olmadan porter başlamır.
-2. **İki writer eyni fayla toxunmur.**
-3. **Review-ə kodu ver, öz fikrini yox** — yoxsa review sənin fikrini təsdiqləyir.
-4. **Worker-in hesabatı iddiadır, sübut deyil** — diff-ə və build-ə özün bax.
-5. **Geri dönməz addımlar (commit, push, merge, publish, real ödəniş/data) — yalnız sənin "bəli"nlə.**
-6. **Şübhədə qalanda spawn etmə.** Hər agent token xərcidir; kiçik işi özün et.
+1. **Analysis first, code second.** No porter starts without a spec.
+2. **Two writers never touch the same file.**
+3. **Give the reviewer the code, not your opinion** — otherwise the review just confirms your opinion.
+4. **A worker's report is a claim, not proof** — look at the diff and the build yourself.
+5. **Irreversible steps (commit, push, merge, publish, real payments/data) — only on your "yes".**
+6. **When in doubt, don't spawn.** Every agent costs tokens; do small work yourself.
