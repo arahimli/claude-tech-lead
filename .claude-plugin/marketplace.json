@@ -1,0 +1,11 @@
+{
+  "name": "claude-tech-lead",
+  "owner": { "name": "tech-lead-kit contributors" },
+  "plugins": [
+    {
+      "name": "tech-lead-kit",
+      "source": "./",
+      "description": "Orchestration subagents, commands, migration skills and settings/hook templates for running Claude Code like a tech lead."
+    }
+  ]
+}

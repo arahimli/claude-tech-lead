@@ -1,0 +1,28 @@
+# Project rules for Claude
+
+<!-- Copy to the repo root as CLAUDE.md and fill in. Keep it short: rules, not docs. -->
+
+## Project
+- Platform / stack: <iOS SwiftUI | Android Compose | Flutter>, min OS <x>
+- Architecture: <Clean Architecture + MVI / MVVM …>; feature folders: <path>
+- Design system module: <path> — always reuse its tokens and components
+- Source of truth: business logic & API = <Flutter repo path>; UI = <Figma link>
+
+## Build & run
+- Build: `<command>`
+- Run on simulator/emulator: `<command>`
+- Tests: `<command>`
+
+## Git
+- Never commit or push on `main` / `develop` — create `feature/<TICKET>-<slug>`.
+- Commit subject: `<TICKET-123> short summary`
+- Ask before every push, merge request or release.
+
+## Working style
+- Every UI change goes to iOS AND Android in the same pass.
+- Analyse the Flutter source fully before porting; port 1:1, never approximate.
+- Strings only through localization (<languages>).
+- Files that must never be committed: <debug hacks, local configs>
+
+## Intentional deviations from Flutter
+- <component>: <what differs and why — approved by whom/when>

@@ -1,0 +1,8 @@
+{
+  "name": "tech-lead-kit",
+  "version": "0.1.0",
+  "description": "Run Claude Code like a tech lead: orchestration subagents, commands, Flutter-to-native migration skills and settings/hook templates.",
+  "author": { "name": "tech-lead-kit contributors" },
+  "license": "MIT",
+  "keywords": ["orchestration", "subagents", "worktree", "review", "flutter", "swiftui", "compose", "migration"]
+}
